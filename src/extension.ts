@@ -68,8 +68,14 @@ async function createComponentFiles(name: string, version: string, description: 
         const componentDir = vscode.Uri.file(`${rootPath}/${pascalCaseName}`);
 
         try {
-            // Check if the component folder already exists
-            const componentDirExists = await vscode.workspace.fs.stat(componentDir).then(() => true).catch(() => false);
+            // Check if the component folder already exists using try...catch
+            let componentDirExists = false;
+            try {
+                await vscode.workspace.fs.stat(componentDir);
+                componentDirExists = true;
+            } catch (error) {
+                componentDirExists = false;
+            }
 
             if (!componentDirExists) {
                 // If component folder does not exist, create it
@@ -78,8 +84,14 @@ async function createComponentFiles(name: string, version: string, description: 
 
             const versionDir = vscode.Uri.file(`${componentDir.fsPath}/${version}`);
 
-            // Check if the version folder already exists
-            const versionDirExists = await vscode.workspace.fs.stat(versionDir).then(() => true).catch(() => false);
+            // Check if the version folder already exists using try...catch
+            let versionDirExists = false;
+            try {
+                await vscode.workspace.fs.stat(versionDir);
+                versionDirExists = true;
+            } catch (error) {
+                versionDirExists = false;
+            }
 
             if (versionDirExists) {
                 vscode.window.showInformationMessage(`Version ${version} already exists for component ${pascalCaseName}.`);
@@ -153,7 +165,8 @@ async function createComponentFiles(name: string, version: string, description: 
 
             vscode.window.showInformationMessage(`Component ${pascalCaseName} version ${version} created successfully with .weBean.html, .class.js, .less, and test .html files!`);
         } catch (err) {
-            vscode.window.showErrorMessage(`Error creating component files: ${err.message}`);
+            const error = err as Error;  // Explicitly cast err to Error
+            vscode.window.showErrorMessage(`Error creating component files: ${error.message}`);
         }
     } else {
         vscode.window.showErrorMessage('No workspace folder found.');
