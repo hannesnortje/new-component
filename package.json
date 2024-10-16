@@ -1,15 +1,18 @@
 {
-  "name": "new-component",
-  "displayName": "New Component",
-  "description": "A new Web4x component",
-  "version": "0.0.1",
+  "name": "newWeb4xComponent",
+  "displayName": "A New Web4x Component",
+  "description": "The extension creates a new Web4x component with all the essential boiler plate. This includes a default view, the JS class and less file.",
+  "version": "1.0.0",
+  "publisher": "Cerulean Circle GmbH",
   "engines": {
-    "vscode": "^1.94.0"
+    "vscode": "^1.60.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:extension.createComponent"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -19,23 +22,16 @@
       }
     ]
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hannesnortje/new-component"
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "compile": "tsc -p ./"
   },
   "devDependencies": {
-    "@types/vscode": "^1.94.0",
-    "@types/mocha": "^10.0.8",
-    "@types/node": "20.x",
-    "@typescript-eslint/eslint-plugin": "^8.7.0",
-    "@typescript-eslint/parser": "^8.7.0",
-    "eslint": "^9.11.1",
-    "typescript": "^5.6.2",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "typescript": "^4.0.0",
+    "vscode": "^1.1.37"
   }
 }
