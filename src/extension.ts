@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 // Utility function to convert a string to PascalCase
-function toPascalCase(str: string): string {
+const toPascalCase = (str: string): string => {
     return str
         .split(' ')
         .map(word => {
@@ -12,23 +12,23 @@ function toPascalCase(str: string): string {
                 : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
         })
         .join('');
-}
+};
 
 // Utility function to convert a string to KebabCase
-function toKebabCase(str: string): string {
+const toKebabCase = (str: string): string => {
     return str
         .split(' ')
         .map(word => word.toLowerCase())
         .join('-');
-}
+};
 
 // Function to load available versions (subfolders) from the templates folder in the workspace root
-function getAvailableVersions(): string[] {
+const getAvailableVersions = (): string[] => {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders) {
         const rootPath = workspaceFolders[0].uri.fsPath;
         const templateFolderPath = path.join(rootPath, 'templates');
-        
+
         if (fs.existsSync(templateFolderPath)) {
             return fs.readdirSync(templateFolderPath).filter(folder => {
                 return fs.lstatSync(path.join(templateFolderPath, folder)).isDirectory();
@@ -36,10 +36,10 @@ function getAvailableVersions(): string[] {
         }
     }
     return [];
-}
+};
 
 // Function to load the template from a versioned folder in the workspace's templates folder
-function loadTemplate(version: string, templateFileName: string): string {
+const loadTemplate = (version: string, templateFileName: string): string => {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
         throw new Error('No workspace folder found.');
@@ -54,17 +54,15 @@ function loadTemplate(version: string, templateFileName: string): string {
     } else {
         throw new Error(`Template not found: ${templateFileName} for version ${version}`);
     }
-}
+};
 
 // Function to create component files and folder structure
-async function createComponentFiles(selectedFolder: vscode.Uri, name: string, version: string, description: string) {
-    // Convert component name to PascalCase and KebabCase
+const createComponentFiles = async (selectedFolder: vscode.Uri, name: string, version: string, description: string) => {
     const pascalCaseName = toPascalCase(name);
     const kebabCaseName = toKebabCase(name);
     const componentDir = vscode.Uri.file(`${selectedFolder.fsPath}/${pascalCaseName}`);
 
     try {
-        // Check if the component folder already exists
         let componentDirExists = false;
         try {
             await vscode.workspace.fs.stat(componentDir);
@@ -74,13 +72,11 @@ async function createComponentFiles(selectedFolder: vscode.Uri, name: string, ve
         }
 
         if (!componentDirExists) {
-            // If component folder does not exist, create it
             await vscode.workspace.fs.createDirectory(componentDir);
         }
 
         const versionDir = vscode.Uri.file(`${componentDir.fsPath}/${version}`);
 
-        // Check if the version folder already exists
         let versionDirExists = false;
         try {
             await vscode.workspace.fs.stat(versionDir);
@@ -94,21 +90,17 @@ async function createComponentFiles(selectedFolder: vscode.Uri, name: string, ve
             return;
         }
 
-        // Create the version folder
         await vscode.workspace.fs.createDirectory(versionDir);
 
-        // Create an empty .component.xml file in the version folder
         const xmlFile = vscode.Uri.file(`${versionDir.fsPath}/${pascalCaseName}.component.xml`);
         const emptyContent = Buffer.from('', 'utf8');
         await vscode.workspace.fs.writeFile(xmlFile, emptyContent);
 
-        // Create src, test directories inside the version folder
         const srcDir = vscode.Uri.file(`${versionDir.fsPath}/src`);
         const testDir = vscode.Uri.file(`${versionDir.fsPath}/test`);
         await vscode.workspace.fs.createDirectory(srcDir);
         await vscode.workspace.fs.createDirectory(testDir);
 
-        // Create html/weBeans, js, less directories inside src
         const htmlDir = vscode.Uri.file(`${srcDir.fsPath}/html`);
         const jsDir = vscode.Uri.file(`${srcDir.fsPath}/js`);
         const lessDir = vscode.Uri.file(`${srcDir.fsPath}/less`);
@@ -119,13 +111,11 @@ async function createComponentFiles(selectedFolder: vscode.Uri, name: string, ve
         const weBeansDir = vscode.Uri.file(`${htmlDir.fsPath}/weBeans`);
         await vscode.workspace.fs.createDirectory(weBeansDir);
 
-        // --- Create the test/html and test/js directories ---
         const testHtmlDir = vscode.Uri.file(`${testDir.fsPath}/html`);
         const testJsDir = vscode.Uri.file(`${testDir.fsPath}/js`);
         await vscode.workspace.fs.createDirectory(testHtmlDir);
         await vscode.workspace.fs.createDirectory(testJsDir);
 
-        // --- Create the .weBean.html file ---
         const weBeanFileContent = loadTemplate(version, 'Template.weBean.html')
             .replace(/\$\{pascalCaseName\}/g, pascalCaseName)
             .replace(/\$\{kebabCaseName\}/g, kebabCaseName);
@@ -133,7 +123,6 @@ async function createComponentFiles(selectedFolder: vscode.Uri, name: string, ve
         const weBeanFile = vscode.Uri.file(`${weBeansDir.fsPath}/${pascalCaseName}.weBean.html`);
         await vscode.workspace.fs.writeFile(weBeanFile, Buffer.from(weBeanFileContent, 'utf8'));
 
-        // --- Create the .class.js file ---
         const classJsFileContent = loadTemplate(version, 'Template.class.js')
             .replace(/\$\{pascalCaseName\}/g, pascalCaseName)
             .replace(/\$\{kebabCaseName\}/g, kebabCaseName)
@@ -142,14 +131,12 @@ async function createComponentFiles(selectedFolder: vscode.Uri, name: string, ve
         const classJsFile = vscode.Uri.file(`${jsDir.fsPath}/${pascalCaseName}.class.js`);
         await vscode.workspace.fs.writeFile(classJsFile, Buffer.from(classJsFileContent, 'utf8'));
 
-        // --- Create the .less file ---
         const lessFileContent = loadTemplate(version, 'Template.less')
             .replace(/\$\{kebabCaseName\}/g, kebabCaseName);
 
         const lessFile = vscode.Uri.file(`${lessDir.fsPath}/Default${pascalCaseName}.less`);
         await vscode.workspace.fs.writeFile(lessFile, Buffer.from(lessFileContent, 'utf8'));
 
-        // --- Create the .html test file in test/html ---
         const componentPath = `/${pascalCaseName}/${version}/${pascalCaseName}.component.xml`;
         const testHtmlFileContent = loadTemplate(version, 'TemplateTest.html')
             .replace(/\$\{pascalCaseName\}/g, pascalCaseName)
@@ -161,13 +148,13 @@ async function createComponentFiles(selectedFolder: vscode.Uri, name: string, ve
 
         vscode.window.showInformationMessage(`Component ${pascalCaseName} version ${version} created successfully with .weBean.html, .class.js, .less, and test .html files!`);
     } catch (err) {
-        const error = err as Error;  // Explicitly cast err to Error
+        const error = err as Error;
         vscode.window.showErrorMessage(`Error creating component files: ${error.message}`);
     }
-}
+};
 
 // Function to handle directory selection and component creation
-async function selectDirectoryAndCreateComponent(name: string, version: string, description: string) {
+const selectDirectoryAndCreateComponent = async (name: string, version: string, description: string) => {
     const uri = await vscode.window.showOpenDialog({
         canSelectFiles: false,
         canSelectFolders: true,
@@ -182,25 +169,21 @@ async function selectDirectoryAndCreateComponent(name: string, version: string, 
 
     const selectedFolderUri = uri[0];
     await createComponentFiles(selectedFolderUri, name, version, description);
-}
+};
 
-export function activate(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand('extension.createComponent', () => {
-        // Create and show a new webview
+// Activate extension
+export const activate = (context: vscode.ExtensionContext) => {
+    const disposable = vscode.commands.registerCommand('extension.createComponent', () => {
         const panel = vscode.window.createWebviewPanel(
-            'newComponent', // Identifies the type of the webview
-            'Create New Component', // Title of the panel
-            vscode.ViewColumn.One, // Editor column to show the new webview panel in
-            { enableScripts: true } // Enable JavaScript in the webview
+            'newComponent',
+            'Create New Component',
+            vscode.ViewColumn.One,
+            { enableScripts: true }
         );
 
-        // Get available versions dynamically from the workspace's templates folder
         const availableVersions = getAvailableVersions();
-
-        // HTML content for the webview, dynamically including version options
         panel.webview.html = getWebviewContent(availableVersions);
 
-        // Handle messages from the webview
         panel.webview.onDidReceiveMessage(
             async message => {
                 switch (message.command) {
@@ -218,11 +201,10 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(disposable);
-}
+};
 
 // Generate the HTML content for the webview with dynamically populated version options
-function getWebviewContent(availableVersions: string[]) {
-    // Generate the version dropdown options
+const getWebviewContent = (availableVersions: string[]) => {
     const versionOptions = availableVersions.map(version => `<option value="${version}">${version}</option>`).join('');
 
     return `<!DOCTYPE html>
@@ -243,7 +225,7 @@ function getWebviewContent(availableVersions: string[]) {
     </head>
     <body>
         <div id="new-component">
-            <h2>Create New Component</h2>
+            <h2>Create New Web4x Component</h2>
             <form id="newComponentForm">
                 <label for="componentName">Component Name (2-3 words):</label>
                 <input type="text" id="componentName" name="componentName" required />
@@ -278,4 +260,4 @@ function getWebviewContent(availableVersions: string[]) {
         </script>
     </body>
     </html>`;
-}
+};

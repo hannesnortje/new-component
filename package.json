@@ -1,7 +1,7 @@
 {
   "name": "newWeb4xComponent",
-  "displayName": "A New Web4x Component",
-  "description": "The extension creates a new Web4x component with all the essential boilerplate. This includes a default view, the JS class and less file.",
+  "displayName": "New Web4x Component",
+  "description": "The extension creates a new Web4x component with all the essential boilerplate. This includes a default view, the JS class, and less file.",
   "version": "1.0.0",
   "publisher": "Cerulean Circle GmbH",
   "engines": {
@@ -18,7 +18,7 @@
     "commands": [
       {
         "command": "extension.createComponent",
-        "title": "Create New Component"
+        "title": "Create New Web4x Component"
       }
     ]
   },
